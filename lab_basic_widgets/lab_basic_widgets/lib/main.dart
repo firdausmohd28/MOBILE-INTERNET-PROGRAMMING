@@ -99,3 +99,4 @@ class _BasicWidgetsDemoState extends State<BasicWidgetsDemo> {
 }
 
 //show on github desktop
+//show on github desktop and browser
