@@ -35,7 +35,7 @@ class _BasicWidgetsDemoState extends State<BasicWidgetsDemo> {
 
       body: Padding(
         padding: const EdgeInsets.all(30.0),
-        child: Column(children: [
+        child: Row(children: [
           Text(
             'Welcome to Flutter Basics',
             style: TextStyle(
