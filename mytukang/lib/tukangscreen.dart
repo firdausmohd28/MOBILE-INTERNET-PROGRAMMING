@@ -29,8 +29,8 @@ class _TukangScreenState extends State<TukangScreen> {
             MaterialPageRoute(builder: (context) => const NewTukangScreen()),
           );
         },
-        child: const Icon(Icons.add),
         backgroundColor: Colors.pink,
+        child: const Icon(Icons.add),
       ),
     );
   }

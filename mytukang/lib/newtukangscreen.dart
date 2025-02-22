@@ -63,16 +63,19 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      openCamera();
+                      opengallery();
                     },
                     child: Container(
                       height: 200,
                       decoration: BoxDecoration(
                           border: Border.all(color: Colors.black),
                           image: DecorationImage(
-                            image: image == null
-                                ? const AssetImage('assets/image/photo.png')
-                                : FileImage(image!) as ImageProvider<Object>,
+                            image: webImage != null
+                                ? MemoryImage(webImage!) as ImageProvider
+                                : (image != null
+                                    ? FileImage(image!) as ImageProvider
+                                    : const AssetImage(
+                                        'assets/image/photo.png')),
                             fit: BoxFit.contain,
                           )),
                     ),
@@ -182,18 +185,23 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
         ));
   }
 
-  Future<void> openCamera() async {
+  Future<void> opengallery() async {
     final picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(
-      source: ImageSource.camera,
+      source: ImageSource.gallery,
       maxHeight: 800,
       maxWidth: 800,
     );
 
     if (pickedFile != null) {
-      image = File(pickedFile.path);
+      if (kIsWeb) {
+        // ✅ Web: Convert to bytes
+        Uint8List bytes = await pickedFile.readAsBytes();
+        setState(() {
+          webImage = bytes;
+        });
+      }
     }
-    setState(() {});
   }
 
   void onsubmitDialog() {
@@ -201,7 +209,7 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
     String email = emailController.text;
     String phone = phoneController.text;
 
-    if (image == null || name.isEmpty || email.isEmpty || phone.isEmpty) {
+    if (webImage == null || name.isEmpty || email.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please fill in all required fields'),
@@ -254,20 +262,43 @@ class _NewTukangScreenState extends State<NewTukangScreen> {
         });
   }
 
-  void submitData() {
+  void submitData() async {
     String name = nameController.text;
     String email = emailController.text;
     String phone = phoneController.text;
     String base64Image = base64Encode(image!.readAsBytesSync());
-    http.post(Uri.parse('http://10.19.23.175/mytukang/api/dbconnect.php'),
+
+    http.post(Uri.parse('http:// 10.19.44.22/mytukang/api/insert_tukang.php'),
         body: {
           'name': name,
           'email': email,
           'phone': phone,
+          'field': selectedField,
           'district': selectedDistrict,
-          'image': base64Image,
+          //'desc': desc,
+          'image': base64Encode(image!.readAsBytesSync()),
         }).then((response) {
-      print(response.body);
+      {
+        if (response.statusCode == 200) {
+          var arrayresponse = jsonDecode(response.body);
+          if (arrayresponse['status'] == 'success') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Tukang submitted successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.of(context).pop();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to submit tukang'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
     });
   }
 }
